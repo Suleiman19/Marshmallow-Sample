@@ -1,82 +1,107 @@
 package com.grafixartist.marshmallowsample;
 
-import android.content.ComponentName;
-import android.net.Uri;
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.customtabs.CustomTabsClient;
-import android.support.customtabs.CustomTabsIntent;
-import android.support.customtabs.CustomTabsServiceConnection;
-import android.support.customtabs.CustomTabsSession;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import com.grafixartist.marshmallowsample.util.CustomRecyclerClickListener;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome";
+    RecyclerView recyclerView;
 
-    CustomTabsClient mClient;
-    CustomTabsSession mCustomTabsSession;
-    CustomTabsServiceConnection mCustomTabsServiceConnection;
-    CustomTabsIntent customTabsIntent;
-
-    static final String URL = "http://blog.grafixartist.com/";
-
+    List<String> titles;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        /*
-            Setup Chrome Custom Tabs
-         */
-        mCustomTabsServiceConnection = new CustomTabsServiceConnection() {
-            @Override
-            public void onCustomTabsServiceConnected(ComponentName componentName, CustomTabsClient customTabsClient) {
+        recyclerView = (RecyclerView) findViewById(R.id.main_list);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
 
-                //Pre-warming
-                mClient = customTabsClient;
-                mClient.warmup(0L);
-                //Initialize a session as soon as possible.
-                mCustomTabsSession = mClient.newSession(null);
+        titles = Arrays.asList(getResources().getStringArray(R.array.titles));
 
-            }
+        recyclerView.setAdapter(new MainAdapter());
 
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                mClient = null;
-            }
-        };
 
-        CustomTabsClient.bindCustomTabsService(MainActivity.this, CUSTOM_TAB_PACKAGE_NAME, mCustomTabsServiceConnection);
+        recyclerView.addOnItemTouchListener(new CustomRecyclerClickListener(this, new CustomRecyclerClickListener.OnItemClickListener() {
 
-        customTabsIntent = new CustomTabsIntent.Builder(mCustomTabsSession)
-                .setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary))
-                .setShowTitle(true)
-                .build();
-        /*
-            End custom tabs setup
-         */
+                    @Override
+                    public void onItemClick(View view, int position) {
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+                        Intent i;
 
-                // Launch Chrome Custom Tabs on click
-                customTabsIntent.launchUrl(MainActivity.this, Uri.parse(URL));
+                        switch (position) {
 
-            }
-        });
+                            case 0:
+                                i = new Intent(MainActivity.this, CustomTabsActivity.class);
+                                startActivity(i);
+                                break;
+                            case 1:
+                                i = new Intent(MainActivity.this, PermissionActivity.class);
+                                startActivity(i);
+                                break;
+
+                        }
+
+                    }
+                })
+        );
 
 
     }
 
 
+    class MainAdapter extends RecyclerView.Adapter<MainAdapter.TitleHolder> {
+
+
+        @Override
+        public TitleHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+            View v = LayoutInflater.from(parent.getContext()).inflate(
+                    R.layout.main_list_item, parent, false);
+
+            return new TitleHolder(v);
+        }
+
+        @Override
+        public void onBindViewHolder(TitleHolder holder, int position) {
+
+            holder.titleView.setText(titles.get(position));
+
+        }
+
+        @Override
+        public int getItemCount() {
+            return titles.size();
+        }
+
+
+        class TitleHolder extends RecyclerView.ViewHolder {
+            TextView titleView;
+
+            public TitleHolder(View itemView) {
+                super(itemView);
+
+                titleView = (TextView) itemView.findViewById(R.id.list_title);
+            }
+        }
+    }
 }

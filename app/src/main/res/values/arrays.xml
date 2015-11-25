@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="titles">
+
+        <item>Chrome Custom Tabs</item>
+        <item>Run-time Permissions</item>
+
+    </string-array>
+
+</resources>
